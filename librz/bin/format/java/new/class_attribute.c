@@ -21,7 +21,7 @@ static ut8 *copy_buffer(RzBuffer *buf, st64 size, bool null_terminator) {
 	return buffer;
 }
 
-static char* resolve_const_pool_index(ConstPool **pool, ut32 poolsize, ut32 index) {
+static char *resolve_const_pool_index(ConstPool **pool, ut32 poolsize, ut32 index) {
 	const ConstPool *cpool;
 	if (index >= poolsize || !(cpool = pool[index])) {
 		return NULL;
@@ -98,7 +98,7 @@ bool java_attribute_set_code(ConstPool **pool, ut32 poolsize, Attribute *attr, R
 
 		for (ut32 i = 0; i < ac->attributes_count; ++i) {
 			Attribute *attr = java_attribute_new(buf, UT64_MAX);
-			if(attr && java_attribute_resolve(pool, poolsize, attr, buf)) {
+			if (attr && java_attribute_resolve(pool, poolsize, attr, buf)) {
 				ac->attributes[i] = attr;
 			} else {
 				java_attribute_free(attr);

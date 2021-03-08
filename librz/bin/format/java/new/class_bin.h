@@ -64,7 +64,7 @@ RZ_API void rz_bin_java_class_free(RzBinJavaClass *bin);
 
 RZ_API char *rz_bin_java_class_version(RzBinJavaClass *bin);
 RZ_API ut64 rz_bin_java_class_debug_info(RzBinJavaClass *bin);
-RZ_API char* rz_bin_java_class_language(RzBinJavaClass *bin);
+RZ_API char *rz_bin_java_class_language(RzBinJavaClass *bin);
 RZ_API char *rz_bin_java_class_name(RzBinJavaClass *bin);
 RZ_API char *rz_bin_java_class_super(RzBinJavaClass *bin);
 RZ_API ut32 rz_bin_java_class_access_flags(RzBinJavaClass *bin);

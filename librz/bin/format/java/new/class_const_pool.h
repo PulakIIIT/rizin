@@ -39,7 +39,7 @@ typedef struct java_constant_pool_t {
 ConstPool *java_constant_null_new(ut64 offset);
 ConstPool *java_constant_pool_new(RzBuffer *buf, ut64 offset);
 void java_constant_pool_free(ConstPool *cpool);
-const char* java_constant_pool_tag_name(const ConstPool *cpool);
+const char *java_constant_pool_tag_name(const ConstPool *cpool);
 bool java_constant_pool_is_string(const ConstPool *cpool);
 bool java_constant_pool_is_import(const ConstPool *cpool);
 bool java_constant_pool_requires_null(const ConstPool *cpool);

@@ -128,7 +128,7 @@ RZ_API int java_print_opcode(RzBinJavaObj *obj, ut64 addr, int idx, const ut8 *b
 		//	snprintf(output, outlen, "%s %s", JAVA_OPS[idx].name, arg);
 		//	free(arg);
 		//} else {
-			snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
+		snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
 		//}
 		output[outlen - 1] = 0;
 		return update_bytes_consumed(JAVA_OPS[idx].size);
@@ -140,7 +140,7 @@ RZ_API int java_print_opcode(RzBinJavaObj *obj, ut64 addr, int idx, const ut8 *b
 		//	snprintf(output, outlen, "%s %s", JAVA_OPS[idx].name, arg);
 		//	free(arg);
 		//} else {
-			snprintf(output, outlen, "%s #%u", JAVA_OPS[idx].name, val_one);
+		snprintf(output, outlen, "%s #%u", JAVA_OPS[idx].name, val_one);
 		//}
 		output[outlen - 1] = 0;
 		return update_bytes_consumed(JAVA_OPS[idx].size);
@@ -188,7 +188,7 @@ RZ_API int java_print_opcode(RzBinJavaObj *obj, ut64 addr, int idx, const ut8 *b
 		//	snprintf(output, outlen, "%s %s", JAVA_OPS[idx].name, arg);
 		//	free(arg);
 		//} else {
-			snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
+		snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
 		//}
 		output[outlen - 1] = 0;
 		return update_bytes_consumed(JAVA_OPS[idx].size);
@@ -201,7 +201,7 @@ RZ_API int java_print_opcode(RzBinJavaObj *obj, ut64 addr, int idx, const ut8 *b
 		//	snprintf(output, outlen, "%s %s", JAVA_OPS[idx].name, arg);
 		//	free(arg);
 		//} else {
-			snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
+		snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
 		//}
 		output[outlen - 1] = 0;
 		return update_bytes_consumed(JAVA_OPS[idx].size);
@@ -214,7 +214,7 @@ RZ_API int java_print_opcode(RzBinJavaObj *obj, ut64 addr, int idx, const ut8 *b
 		//	snprintf(output, outlen, "%s %s", JAVA_OPS[idx].name, arg);
 		//	free(arg);
 		//} else {
-			snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
+		snprintf(output, outlen, "%s #%d", JAVA_OPS[idx].name, rz_read_at_be16(bytes, 1));
 		//}
 		output[outlen - 1] = 0;
 		return update_bytes_consumed(JAVA_OPS[idx].size);

@@ -68,7 +68,7 @@ static Sdb *get_sdb(RzBinFile *bf) {
 }
 
 static void free_rz_bin_class(void /*RzBinClass*/ *k) {
-	RzBinClass *bclass = k;
+	RzBinClass *bclass = (RzBinClass *)k;
 	if (bclass) {
 		rz_list_free(bclass->methods);
 		rz_list_free(bclass->fields);
@@ -144,13 +144,13 @@ static RzList *symbols(RzBinFile *bf) {
 		return NULL;
 	}
 
-	tmp = rz_bin_java_class_fields_as_symbols(jclass); 
-	if(!rz_list_join(list, tmp)) {
+	tmp = rz_bin_java_class_fields_as_symbols(jclass);
+	if (!rz_list_join(list, tmp)) {
 		rz_list_free(tmp);
 	}
 
 	tmp = rz_bin_java_class_const_pool_as_symbols(jclass);
-	if(!rz_list_join(list, tmp)) {
+	if (!rz_list_join(list, tmp)) {
 		rz_list_free(tmp);
 	}
 	return list;

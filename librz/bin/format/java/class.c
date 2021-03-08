@@ -2775,7 +2775,7 @@ RZ_API void *rz_bin_java_free(RzBinJavaObj *bin) {
 	// XXX - Need to remove all keys belonging to this class from
 	// the share meta information sdb.
 	// TODO e.g. iterate over bin->kv and delete all obj, func, etc. keys
-	sdb_free (bin->kv);
+	sdb_free(bin->kv);
 	// free up the constant pool list
 	rz_list_free(bin->cp_list);
 	// free up the fields list

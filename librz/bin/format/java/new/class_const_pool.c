@@ -77,45 +77,45 @@ void java_constant_pool_free(ConstPool *cpool) {
 	free(cpool);
 }
 
-const char* java_constant_pool_tag_name(const ConstPool *cpool) {
+const char *java_constant_pool_tag_name(const ConstPool *cpool) {
 	rz_return_val_if_fail(cpool, NULL);
-	switch(cpool->tag) {
+	switch (cpool->tag) {
 	case CONSTANT_POOL_ZERO:
-		return "Zero"; 
+		return "Zero";
 	case CONSTANT_POOL_UTF8:
-		return "Utf8"; 
+		return "Utf8";
 	case CONSTANT_POOL_UNICODE:
-		return "Unicode"; 
+		return "Unicode";
 	case CONSTANT_POOL_INTEGER:
-		return "Integer"; 
+		return "Integer";
 	case CONSTANT_POOL_FLOAT:
-		return "Float"; 
+		return "Float";
 	case CONSTANT_POOL_LONG:
-		return "Long"; 
+		return "Long";
 	case CONSTANT_POOL_DOUBLE:
-		return "Double"; 
+		return "Double";
 	case CONSTANT_POOL_CLASS:
-		return "Class"; 
+		return "Class";
 	case CONSTANT_POOL_STRING:
-		return "String"; 
+		return "String";
 	case CONSTANT_POOL_FIELDREF:
-		return "Fieldref"; 
+		return "Fieldref";
 	case CONSTANT_POOL_METHODREF:
-		return "Methodref"; 
+		return "Methodref";
 	case CONSTANT_POOL_INTERFACEMETHODREF:
-		return "InterfaceMethodref"; 
+		return "InterfaceMethodref";
 	case CONSTANT_POOL_NAMEANDTYPE:
-		return "NameAndType"; 
+		return "NameAndType";
 	case CONSTANT_POOL_METHODHANDLE:
-		return "MethodHandle"; 
+		return "MethodHandle";
 	case CONSTANT_POOL_METHODTYPE:
-		return "MethodType"; 
+		return "MethodType";
 	case CONSTANT_POOL_DYNAMIC:
-		return "Dynamic"; 
+		return "Dynamic";
 	case CONSTANT_POOL_INVOKEDYNAMIC:
-		return "InvokeDynamic"; 
+		return "InvokeDynamic";
 	case CONSTANT_POOL_MODULE:
-		return "Module"; 
+		return "Module";
 	case CONSTANT_POOL_PACKAGE:
 		return "Package";
 	default:
@@ -131,8 +131,8 @@ bool java_constant_pool_is_string(const ConstPool *cpool) {
 bool java_constant_pool_is_import(const ConstPool *cpool) {
 	rz_return_val_if_fail(cpool, false);
 	return cpool->tag == CONSTANT_POOL_METHODREF ||
-			cpool->tag == CONSTANT_POOL_INTERFACEMETHODREF || 
-			cpool->tag == CONSTANT_POOL_FIELDREF;
+		cpool->tag == CONSTANT_POOL_INTERFACEMETHODREF ||
+		cpool->tag == CONSTANT_POOL_FIELDREF;
 }
 
 bool java_constant_pool_requires_null(const ConstPool *cpool) {
@@ -151,7 +151,7 @@ char *java_constant_pool_stringify(const ConstPool *cpool) {
 		if (!cpool->size) {
 			return NULL;
 		}
-		return rz_str_encoded_json((const char*)cpool->buffer, cpool->size, 0);
+		return rz_str_encoded_json((const char *)cpool->buffer, cpool->size, 0);
 	}
 	case CONSTANT_POOL_LONG: {
 		st64 value = rz_read_be64(cpool->buffer);

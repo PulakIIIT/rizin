@@ -6,7 +6,7 @@
 
 #define java_class_is_older_format(bin) \
 	((bin)->major_version < (45) || \
-	((bin)->major_version == (45) && (bin)->minor_version < (3)))
+		((bin)->major_version == (45) && (bin)->minor_version < (3)))
 
 #define CLASS_ACCESS_FLAGS_SIZE 16
 static const AccessFlagsReadable access_flags_list[CLASS_ACCESS_FLAGS_SIZE] = {
@@ -147,8 +147,7 @@ static bool java_class_parse(RzBinJavaClass *bin, ut64 base, Sdb *kv, RzBuffer *
 		for (ut32 i = 0; i < bin->attributes_count; ++i) {
 			offset = rz_buf_tell(buf) + base;
 			Attribute *attr = java_attribute_new(buf, offset);
-			if(attr && java_attribute_resolve(bin->constant_pool,
-				bin->constant_pool_count, attr, buf)) {
+			if (attr && java_attribute_resolve(bin->constant_pool, bin->constant_pool_count, attr, buf)) {
 				bin->attributes[i] = attr;
 			} else {
 				java_attribute_free(attr);
@@ -277,13 +276,13 @@ RZ_API ut64 rz_bin_java_class_debug_info(RzBinJavaClass *bin) {
 	return RZ_BIN_DBG_SYMS;
 }
 
-RZ_API char* rz_bin_java_class_language(RzBinJavaClass *bin) {
+RZ_API char *rz_bin_java_class_language(RzBinJavaClass *bin) {
 	rz_return_val_if_fail(bin, NULL);
-	const char* language = "java";
+	const char *language = "java";
 	char *string = NULL;
 	if (bin->constant_pool) {
 		for (ut32 i = 0; i < bin->constant_pool_count; ++i) {
-			const ConstPool* cpool = bin->constant_pool[i];
+			const ConstPool *cpool = bin->constant_pool[i];
 			if (!cpool || !java_constant_pool_is_string(cpool)) {
 				continue;
 			}
@@ -447,7 +446,6 @@ RZ_API void rz_bin_java_class_as_json(RzBinJavaClass *bin, PJ *j) {
 	pj_kn(j, "fields_count", bin->fields_count);
 	pj_k(j, "fields");
 	rz_bin_java_class_fields_as_json(bin, j);
-
 
 	pj_kn(j, "attributes_count", bin->attributes_count);
 	pj_ka(j, "attributes");
@@ -656,8 +654,8 @@ RZ_API RzList *rz_bin_java_class_strings(RzBinJavaClass *bin) {
 	return list;
 }
 
-static char* add_class_name_to_name(char* name, char* classname) {
-	char* tmp;
+static char *add_class_name_to_name(char *name, char *classname) {
+	char *tmp;
 	if (classname && name) {
 		tmp = rz_str_newf("%s.%s", classname, name);
 		if (!tmp) {
@@ -1008,12 +1006,12 @@ RZ_API void rz_bin_java_class_fields_as_json(RzBinJavaClass *bin, PJ *j) {
 	pj_end(j);
 }
 
-static char* import_type(const ConstPool* cpool) {
-	if(cpool->tag == CONSTANT_POOL_METHODREF) {
+static char *import_type(const ConstPool *cpool) {
+	if (cpool->tag == CONSTANT_POOL_METHODREF) {
 		return RZ_BIN_TYPE_METH_STR;
-	} else if(cpool->tag == CONSTANT_POOL_FIELDREF) {
+	} else if (cpool->tag == CONSTANT_POOL_FIELDREF) {
 		return "FIELD";
-	} else if(cpool->tag == CONSTANT_POOL_INTERFACEMETHODREF) {
+	} else if (cpool->tag == CONSTANT_POOL_INTERFACEMETHODREF) {
 		return "IMETH";
 	}
 	return RZ_BIN_TYPE_UNKNOWN_STR;
@@ -1031,7 +1029,7 @@ RZ_API RzList *rz_bin_java_class_const_pool_as_symbols(RzBinJavaClass *bin) {
 	ut16 class_index, name_and_type_index, name_index, descriptor_index, class_name_index;
 	if (bin->constant_pool) {
 		for (ut32 i = 0; i < bin->constant_pool_count; ++i) {
-			const ConstPool* cpool = bin->constant_pool[i];
+			const ConstPool *cpool = bin->constant_pool[i];
 			if (!cpool || !java_constant_pool_is_import(cpool)) {
 				continue;
 			}
@@ -1039,13 +1037,13 @@ RZ_API RzList *rz_bin_java_class_const_pool_as_symbols(RzBinJavaClass *bin) {
 				rz_warn_if_reached();
 				continue;
 			}
-			const ConstPool* nat = java_class_constant_pool_at(bin, name_and_type_index);
+			const ConstPool *nat = java_class_constant_pool_at(bin, name_and_type_index);
 			if (!nat ||
 				java_constant_pool_resolve(nat, &name_index, &descriptor_index) != 2) {
 				rz_warn_if_reached();
 				continue;
 			}
-			const ConstPool* pclass = java_class_constant_pool_at(bin, class_index);
+			const ConstPool *pclass = java_class_constant_pool_at(bin, class_index);
 			if (!pclass ||
 				java_constant_pool_resolve(pclass, &class_name_index, NULL) != 1) {
 				rz_warn_if_reached();
@@ -1084,7 +1082,7 @@ RZ_API RzList *rz_bin_java_class_const_pool_as_imports(RzBinJavaClass *bin) {
 	ut16 class_index, name_and_type_index, name_index, descriptor_index, class_name_index;
 	if (bin->constant_pool) {
 		for (ut32 i = 0; i < bin->constant_pool_count; ++i) {
-			const ConstPool* cpool = bin->constant_pool[i];
+			const ConstPool *cpool = bin->constant_pool[i];
 			if (!cpool || !java_constant_pool_is_import(cpool)) {
 				continue;
 			}
@@ -1092,13 +1090,13 @@ RZ_API RzList *rz_bin_java_class_const_pool_as_imports(RzBinJavaClass *bin) {
 				rz_warn_if_reached();
 				continue;
 			}
-			const ConstPool* nat = java_class_constant_pool_at(bin, name_and_type_index);
+			const ConstPool *nat = java_class_constant_pool_at(bin, name_and_type_index);
 			if (!nat ||
 				java_constant_pool_resolve(nat, &name_index, &descriptor_index) != 2) {
 				rz_warn_if_reached();
 				continue;
 			}
-			const ConstPool* pclass = java_class_constant_pool_at(bin, class_index);
+			const ConstPool *pclass = java_class_constant_pool_at(bin, class_index);
 			if (!pclass ||
 				java_constant_pool_resolve(pclass, &class_name_index, NULL) != 1) {
 				rz_warn_if_reached();
@@ -1162,7 +1160,7 @@ RZ_API void rz_bin_java_class_const_pool_as_text(RzBinJavaClass *bin, RzStrBuf *
 	if (bin->constant_pool) {
 		int padding = calculate_padding_ut16(bin->constant_pool_count) + 1;
 		for (ut32 i = 0; i < bin->constant_pool_count; ++i) {
-			const ConstPool* cpool = bin->constant_pool[i];
+			const ConstPool *cpool = bin->constant_pool[i];
 			if (!cpool) {
 				continue;
 			}
@@ -1186,7 +1184,7 @@ RZ_API void rz_bin_java_class_const_pool_as_json(RzBinJavaClass *bin, PJ *j) {
 	pj_a(j);
 	if (bin->constant_pool) {
 		for (ut32 i = 0; i < bin->constant_pool_count; ++i) {
-			const ConstPool* cpool = bin->constant_pool[i];
+			const ConstPool *cpool = bin->constant_pool[i];
 			if (!cpool) {
 				continue;
 			}
@@ -1208,7 +1206,7 @@ RZ_API void rz_bin_java_class_const_pool_as_json(RzBinJavaClass *bin, PJ *j) {
 	pj_end(j);
 }
 
-static RzBinSection *new_section(const char* name, ut64 start, ut64 end, ut32 perm) {
+static RzBinSection *new_section(const char *name, ut64 start, ut64 end, ut32 perm) {
 	RzBinSection *section = RZ_NEW0(RzBinSection);
 	if (!section) {
 		rz_warn_if_reached();
@@ -1244,28 +1242,25 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 	char secname[256];
 	ut64 end_offset;
 	if (bin->constant_pool) {
-		rz_list_append(sections, 
+		rz_list_append(sections,
 			new_section("class.constant_pool",
-						bin->constant_pool_offset,
-						bin->interfaces_offset,
-						RZ_PERM_R)
-		);
+				bin->constant_pool_offset,
+				bin->interfaces_offset,
+				RZ_PERM_R));
 	}
 	if (bin->interfaces) {
-		rz_list_append(sections, 
+		rz_list_append(sections,
 			new_section("class.interfaces",
-						bin->interfaces_offset,
-						bin->fields_offset,
-						RZ_PERM_R)
-		);
+				bin->interfaces_offset,
+				bin->fields_offset,
+				RZ_PERM_R));
 	}
 	if (bin->fields) {
-		rz_list_append(sections, 
+		rz_list_append(sections,
 			new_section("class.fields",
-						bin->fields_offset,
-						bin->methods_offset,
-						RZ_PERM_R)
-		);
+				bin->fields_offset,
+				bin->methods_offset,
+				RZ_PERM_R));
 		for (ut32 i = 0; i < bin->fields_count; ++i) {
 			Field *field = bin->fields[i];
 			if (!field) {
@@ -1287,12 +1282,11 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 		}
 	}
 	if (bin->methods) {
-		rz_list_append(sections, 
+		rz_list_append(sections,
 			new_section("class.methods",
-						bin->methods_offset,
-						bin->attributes_offset,
-						RZ_PERM_R)
-		);
+				bin->methods_offset,
+				bin->attributes_offset,
+				RZ_PERM_R));
 		for (ut32 i = 0; i < bin->methods_count; ++i) {
 			Method *method = bin->methods[i];
 			if (!method || method->attributes_count < 1) {
@@ -1329,19 +1323,18 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 		}
 	}
 	if (bin->attributes) {
-		rz_list_append(sections, 
+		rz_list_append(sections,
 			new_section("class.attr",
-						bin->attributes_offset,
-						bin->class_end_offset,
-						RZ_PERM_R)
-		);
+				bin->attributes_offset,
+				bin->class_end_offset,
+				RZ_PERM_R));
 	}
 
 	return sections;
 }
 
 static int compare_strings(const void *a, const void *b) {
-	return strcmp((const char*)a, (const char*)b);
+	return strcmp((const char *)a, (const char *)b);
 }
 
 RZ_API RzList *rz_bin_java_class_as_libraries(RzBinJavaClass *bin) {
@@ -1357,7 +1350,7 @@ RZ_API RzList *rz_bin_java_class_as_libraries(RzBinJavaClass *bin) {
 	if (bin->constant_pool) {
 		for (ut32 i = 0; i < bin->constant_pool_count; ++i) {
 			tmp = NULL;
-			const ConstPool* cpool = bin->constant_pool[i];
+			const ConstPool *cpool = bin->constant_pool[i];
 			if (!cpool) {
 				continue;
 			}
@@ -1374,7 +1367,7 @@ RZ_API RzList *rz_bin_java_class_as_libraries(RzBinJavaClass *bin) {
 					continue;
 				}
 				// arg0 is name_and_type_index
-				const ConstPool* nat = java_class_constant_pool_at(bin, arg0);
+				const ConstPool *nat = java_class_constant_pool_at(bin, arg0);
 				if (!nat ||
 					java_constant_pool_resolve(nat, &arg0, &arg1) != 1) {
 					rz_warn_if_reached();

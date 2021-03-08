@@ -88,4 +88,3 @@ bool java_field_is_global(const Field *field) {
 	ut16 flag = FIELD_ACCESS_FLAG_PUBLIC | FIELD_ACCESS_FLAG_STATIC | FIELD_ACCESS_FLAG_FINAL;
 	return field && (field->access_flags & flag) == flag;
 }
-

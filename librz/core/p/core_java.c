@@ -11,11 +11,10 @@
 
 #include "../format/java/new/class_bin.h"
 
-
-#define name_args(name) (cmd_ ## name ## _args)
-#define name_help(name) (cmd_ ## name ## _help)
-#define name_handler(name) (rz_cmd_ ## name ## _handler)
-#define static_description_without_args(command,summ) \
+#define name_args(name)    (cmd_##name##_args)
+#define name_help(name)    (cmd_##name##_help)
+#define name_handler(name) (rz_cmd_##name##_handler)
+#define static_description_without_args(command, summ) \
 	static const RzCmdDescArg name_args(command)[] = { \
 		{ 0 }, \
 	}; \
@@ -23,8 +22,8 @@
 		.summary = summ, \
 		.args = name_args(command), \
 	}
-#define rz_cmd_desc_argv_modes_new_warn(rcmd,root,cmd,flags) \
-	rz_warn_if_fail(rz_cmd_desc_argv_modes_new(rcmd,root,#cmd,flags,name_handler(cmd),&name_help(cmd)))
+#define rz_cmd_desc_argv_modes_new_warn(rcmd, root, cmd, flags) \
+	rz_warn_if_fail(rz_cmd_desc_argv_modes_new(rcmd, root, #cmd, flags, name_handler(cmd), &name_help(cmd)))
 
 static RzBinJavaClass *core_java_get_class(RzCore *core) {
 	if (!core) {
