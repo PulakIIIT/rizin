@@ -48,7 +48,6 @@ if get_option('enable_tests')
     'idstorage',
     'intervaltree',
     'io',
-    'java',
     'json',
     'list',
     'ovf',

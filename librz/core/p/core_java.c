@@ -9,7 +9,7 @@
 #include <string.h>
 #include <rz_analysis.h>
 
-#include "../format/java/new/class_bin.h"
+#include "../format/java/class_bin.h"
 
 #define name_args(name)    (cmd_##name##_args)
 #define name_help(name)    (cmd_##name##_help)

@@ -1,5 +1,4 @@
-// SPDX-FileCopyrightText: 2009-2019 nibble <nibble.ds@gmail.com>
-// SPDX-FileCopyrightText: 2009-2019 pancake <pancake@nopcode.org>
+// SPDX-FileCopyrightText: 2021 deroad <wargio@libero.it>
 // SPDX-License-Identifier: LGPL-3.0-only
 
 #include <rz_types.h>
@@ -8,40 +7,38 @@
 #include <rz_asm.h>
 #include <rz_core.h>
 
-//#include "../../bin/format/java/class.h"
-#include "../arch/java/code.h"
+#include "../arch/java/jvm.h"
 
-static int disassemble(RzAsm *a, RzAsmOp *op, const ut8 *buf, int len) {
-	RzBinJavaObj *obj = NULL;
-	RzBin *bin = a->binb.bin;
-	RzBinPlugin *plugin = bin && bin->cur && bin->cur->o ? bin->cur->o->plugin : NULL;
-	if (plugin && plugin->name) {
-		if (!strcmp(plugin->name, "java")) { // XXX slow
-			obj = bin->cur->o->bin_obj; //o;
-			//eprintf("Handling: %s disasm.\n", b->cur.file);
-		}
+static int java_disassemble(RzAsm *a, RzAsmOp *op, const ut8 *buf, int len) {
+	JavaVM vm = { 0 };
+	Bytecode bc = { 0 };
+
+	rz_strbuf_set(&op->buf_asm, "invalid");
+
+	if (!jvm_init(&vm, buf, len, a->pc)) {
+		eprintf("[!] java_disassemble: bad or invalid data.\n");
+		return -1;
 	}
-	char buf_asm[256];
-	op->size = rz_java_disasm(obj, a->pc, buf, len, buf_asm, sizeof(buf_asm));
-	rz_strbuf_set(&op->buf_asm, buf_asm);
+	op->size = 1;
+	if (jvm_fetch(&vm, &bc)) {
+		op->size = bc.size;
+		bytecode_snprint(&op->buf_asm, &bc);
+		bytecode_clean(&bc);
+	} else {
+		eprintf("[!] java_disassemble: jvm fetch failed.\n");
+		return -1;
+	}
 	return op->size;
-}
-
-static int assemble(RzAsm *a, RzAsmOp *op, const char *input) {
-	// TODO: get class info from bin if possible
-	// XXX wrong usage of strbuf_get here
-	return op->size = rz_java_assemble(a->pc, (ut8 *)rz_strbuf_get(&op->buf), input);
 }
 
 RzAsmPlugin rz_asm_plugin_java = {
 	.name = "java",
-	.desc = "Java bytecode",
+	.desc = "Java bytecode disassembler",
 	.arch = "java",
-	.license = "Apache",
+	.license = "LGPL-3",
 	.bits = 32,
 	.endian = RZ_SYS_ENDIAN_BIG,
-	.disassemble = &disassemble,
-	.assemble = &assemble
+	.disassemble = &java_disassemble,
 };
 
 #ifndef RZ_PLUGIN_INCORE

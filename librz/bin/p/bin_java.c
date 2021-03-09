@@ -1,6 +1,4 @@
-// SPDX-FileCopyrightText: 2009-2019 pancake <pancake@nopcode.org>
-// SPDX-FileCopyrightText: 2009-2019 nibble <nibble.ds@gmail.com>
-// SPDX-FileCopyrightText: 2009-2019 Adam Pridgen <dso@rice.edu>
+// SPDX-FileCopyrightText: 2021 deroad <wargio@libero.it>
 // SPDX-License-Identifier: LGPL-3.0-only
 
 #include <rz_types.h>
@@ -8,7 +6,7 @@
 #include <rz_lib.h>
 #include <rz_bin.h>
 
-#include "../format/java/new/class_bin.h"
+#include "../format/java/class_bin.h"
 
 #define rz_bin_file_get_java_class(bf) ((RzBinJavaClass *)bf->o->bin_obj)
 
