@@ -1587,6 +1587,7 @@ RZ_API RzAnalysisBlock *rz_analysis_fcn_bbget_in(const RzAnalysis *analysis, RzA
 RZ_API RzAnalysisBlock *rz_analysis_fcn_bbget_at(RzAnalysis *analysis, RzAnalysisFunction *fcn, ut64 addr);
 RZ_API bool rz_analysis_fcn_bbadd(RzAnalysisFunction *fcn, RzAnalysisBlock *bb);
 RZ_API int rz_analysis_function_resize(RzAnalysisFunction *fcn, int newsize);
+RZ_API bool rz_analysis_function_chop_at(RzAnalysisFunction *fcn, ut64 addr);
 RZ_API bool rz_analysis_function_purity(RzAnalysisFunction *fcn);
 
 typedef bool (*RzAnalysisRefCmp)(RzAnalysisRef *ref, void *data);

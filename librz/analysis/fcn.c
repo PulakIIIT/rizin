@@ -134,6 +134,35 @@ RZ_API int rz_analysis_function_resize(RzAnalysisFunction *fcn, int newsize) {
 	return true;
 }
 
+RZ_API bool rz_analysis_function_chop_at(RzAnalysisFunction *fcn, ut64 addr) {
+	RzAnalysisBlock *bb;
+	RzListIter *iter, *iter2;
+
+	rz_return_val_if_fail(fcn, false);
+
+	if (addr < fcn->addr || addr == UT64_MAX) {
+		return false;
+	}
+
+	rz_list_foreach_safe (fcn->bbs, iter, iter2, bb) {
+		if (bb->addr >= addr) {
+			rz_analysis_function_remove_block(fcn, bb);
+			continue;
+		}
+		if (bb->addr + bb->size >= addr) {
+			rz_analysis_block_set_size(bb, addr - bb->addr);
+			rz_analysis_block_update_hash(bb);
+		}
+		if (bb->jump != UT64_MAX && bb->jump >= addr) {
+			bb->jump = UT64_MAX;
+		}
+		if (bb->fail != UT64_MAX && bb->fail >= addr) {
+			bb->fail = UT64_MAX;
+		}
+	}
+	return true;
+}
+
 // Create a new 0-sized basic block inside the function
 static RzAnalysisBlock *fcn_append_basic_block(RzAnalysis *analysis, RzAnalysisFunction *fcn, ut64 addr) {
 	RzAnalysisBlock *bb = rz_analysis_create_block(analysis, addr, 0);
