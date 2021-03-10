@@ -315,21 +315,25 @@ RZ_API int rz_bin_object_set_items(RzBinFile *bf, RzBinObject *o) {
 	if (p->fields) {
 		o->fields = p->fields(bf);
 		if (o->fields) {
-			o->fields->free = rz_bin_field_free;
+			if (!o->fields->free) {
+				o->fields->free = rz_bin_field_free;
+			}
 			REBASE_PADDR(o, o->fields, RzBinField);
 		}
 	}
 	if (p->imports) {
 		rz_list_free(o->imports);
 		o->imports = p->imports(bf);
-		if (o->imports) {
+		if (o->imports && !o->imports->free) {
 			o->imports->free = rz_bin_import_free;
 		}
 	}
 	if (p->symbols) {
 		o->symbols = p->symbols(bf); // 5s
 		if (o->symbols) {
-			o->symbols->free = rz_bin_symbol_free;
+			if (!o->symbols->free) {
+				o->symbols->free = rz_bin_symbol_free;
+			}
 			REBASE_PADDR(o, o->symbols, RzBinSymbol);
 			if (bin->filter) {
 				rz_bin_filter_symbols(bf, o->symbols); // 5s
