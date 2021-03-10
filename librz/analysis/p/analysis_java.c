@@ -7,7 +7,54 @@
 
 #include "../../asm/arch/java/jvm.h"
 
+typedef struct java_analysis_context_t {
+	LookupSwitch ls;
+	TableSwitch ts;
+	ut64 pc;
+	ut16 switchop;
+	ut32 count;
+} JavaAnalysisContext;
+
+
+static void update_context(JavaAnalysisContext* ctx)  {
+	ctx->count++;
+	if (ctx->switchop == BYTECODE_AA_TABLESWITCH && ctx->count > ctx->ts.length) {
+		ctx->switchop = BYTECODE_00_NOP;
+	} else if (ctx->switchop == BYTECODE_AB_LOOKUPSWITCH && ctx->count > ctx->ls.npairs) {
+		ctx->switchop = BYTECODE_00_NOP;
+	}
+}
+
 static int java_analysis(RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr, const ut8 *buf, int len, RzAnalysisOpMask mask) {
+	JavaAnalysisContext *ctx = (JavaAnalysisContext*)analysis->user;
+
+	switch (ctx->switchop) {
+	case BYTECODE_AA_TABLESWITCH:
+		if (len < 4) {
+			eprintf("[!] java_analysis: no enough data for lookupswitch case.\n");
+			return -1;
+		}
+		op->size = 4;
+		op->jump = ctx->pc + rz_read_be32(buf);
+		op->fail = addr + op->size;
+		op->type = RZ_ANALYSIS_OP_TYPE_CJMP;
+		update_context(ctx);
+		return op->size;
+	case BYTECODE_AB_LOOKUPSWITCH:
+		if (len < 8) {
+			eprintf("[!] java_analysis: no enough data for lookupswitch case.\n");
+			return -1;
+		}
+		op->size = 8;
+		op->jump = ctx->pc + rz_read_at_be32(buf, 4);
+		op->fail = addr + op->size;
+		op->type = RZ_ANALYSIS_OP_TYPE_CJMP;
+		update_context(ctx);
+		return op->size;
+	default:
+		break;
+	}
+
 	JavaVM vm = { 0 };
 	Bytecode bc = { 0 };
 
@@ -36,6 +83,17 @@ static int java_analysis(RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr, cons
 			break;
 		default:
 			break;
+		}
+		if (bc.opcode == BYTECODE_AA_TABLESWITCH) {
+			ctx->switchop = BYTECODE_AA_TABLESWITCH;
+			ctx->ts = *((TableSwitch *)bc.extra);
+			ctx->count = 0;
+			ctx->pc = addr;
+		} else if (bc.opcode == BYTECODE_AB_LOOKUPSWITCH) {
+			ctx->switchop = BYTECODE_AB_LOOKUPSWITCH;
+			ctx->ls = *((LookupSwitch *)bc.extra);
+			ctx->count = 0;
+			ctx->pc = addr;
 		}
 		bytecode_clean(&bc);
 	} else {
@@ -66,9 +124,26 @@ static int archinfo(RzAnalysis *analysis, int query) {
 	if (query == RZ_ANALYSIS_ARCHINFO_MIN_OP_SIZE) {
 		return 1;
 	} else if (query == RZ_ANALYSIS_ARCHINFO_MAX_OP_SIZE) {
-		return 5;
+		return 16;
 	}
 	return 0;
+}
+
+static bool java_init(void **user) {
+	JavaAnalysisContext *ctx = RZ_NEW0(JavaAnalysisContext);
+	if (!ctx) {
+		return false;
+	}
+	*user = ctx;
+	return true;
+}
+
+static bool java_fini(void *user) {
+	if (!user) {
+		return false;
+	}
+	free(user);
+	return true;
 }
 
 RzAnalysisPlugin rz_analysis_plugin_java = {
@@ -79,6 +154,8 @@ RzAnalysisPlugin rz_analysis_plugin_java = {
 	.bits = 32,
 	.op = &java_analysis,
 	.archinfo = archinfo,
+	.init = java_init,
+	.fini = java_fini,
 	.set_reg_profile = &set_reg_profile,
 };
 

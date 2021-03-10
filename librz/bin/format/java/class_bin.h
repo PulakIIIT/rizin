@@ -32,6 +32,8 @@ typedef enum {
 	ACCESS_FLAG_MODULE /*    */ = 0x8000
 } ClassAccessFlag;
 
+#define ACCESS_FLAG_MASK_ALL (0xFFFF)
+
 typedef struct java_class_t {
 	ut32 magic;
 	ut16 minor_version;
@@ -64,15 +66,16 @@ RZ_API void rz_bin_java_class_free(RzBinJavaClass *bin);
 
 RZ_API char *rz_bin_java_class_version(RzBinJavaClass *bin);
 RZ_API ut64 rz_bin_java_class_debug_info(RzBinJavaClass *bin);
-RZ_API char *rz_bin_java_class_language(RzBinJavaClass *bin);
+RZ_API const char *rz_bin_java_class_language(RzBinJavaClass *bin);
 RZ_API char *rz_bin_java_class_name(RzBinJavaClass *bin);
 RZ_API char *rz_bin_java_class_super(RzBinJavaClass *bin);
 RZ_API ut32 rz_bin_java_class_access_flags(RzBinJavaClass *bin);
-RZ_API char *rz_bin_java_class_access_flags_readable(RzBinJavaClass *bin);
+RZ_API char *rz_bin_java_class_access_flags_readable(RzBinJavaClass *bin, ut16 mask);
 RZ_API void rz_bin_java_class_as_json(RzBinJavaClass *bin, PJ *j);
 RZ_API void rz_bin_java_class_as_text(RzBinJavaClass *bin, RzStrBuf *sb);
 
 /* used in bin_java.c and core_java.c */
+RZ_API void rz_bin_java_class_as_source_code(RzBinJavaClass *bin, RzStrBuf *sb);
 RZ_API RzBinAddr *rz_bin_java_class_resolve_symbol(RzBinJavaClass *bin, int resolve);
 RZ_API RzList *rz_bin_java_class_strings(RzBinJavaClass *bin);
 RZ_API RzList *rz_bin_java_class_entrypoints(RzBinJavaClass *bin);

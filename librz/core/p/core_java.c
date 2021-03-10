@@ -210,6 +210,27 @@ RZ_IPI RzCmdStatus rz_cmd_javaf_handler(RzCore *core, int argc, const char **arg
 	return RZ_CMD_STATUS_OK;
 }
 
+RZ_IPI RzCmdStatus rz_cmd_javas_handler(RzCore *core, int argc, const char **argv, RzOutputMode mode) {
+	if (argc != 1) {
+		return RZ_CMD_STATUS_WRONG_ARGS;
+	}
+
+	RzBinJavaClass *jclass = core_java_get_class(core);
+	if (!jclass) {
+		return RZ_CMD_STATUS_ERROR;
+	}
+
+	RzStrBuf *sb = rz_strbuf_new("");
+	if (!sb) {
+		return RZ_CMD_STATUS_ERROR;
+	}
+
+	rz_bin_java_class_as_source_code(jclass, sb);
+	rz_cons_print(rz_strbuf_get(sb));
+	rz_strbuf_free(sb);
+	return RZ_CMD_STATUS_OK;
+}
+
 static const RzCmdDescArg cmd_java_args[] = {
 	{ 0 },
 };
@@ -225,10 +246,11 @@ static const RzCmdDescHelp java_usage = {
 };
 
 static_description_without_args(javac, "prints the class structure");
-static_description_without_args(javap, "prints the class constant pool");
 static_description_without_args(javaf, "prints the class fields");
 static_description_without_args(javai, "prints the class interfaces");
 static_description_without_args(javam, "prints the class methods");
+static_description_without_args(javap, "prints the class constant pool");
+static_description_without_args(javas, "prints the class like a java source code");
 
 static bool rz_cmd_java_init_handler(RzCore *core) {
 	RzCmd *rcmd = core->rcmd;
@@ -243,11 +265,12 @@ static bool rz_cmd_java_init_handler(RzCore *core) {
 		return false;
 	}
 
-	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javap, RZ_OUTPUT_MODE_STANDARD | RZ_OUTPUT_MODE_JSON);
 	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javac, RZ_OUTPUT_MODE_STANDARD | RZ_OUTPUT_MODE_JSON);
+	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javaf, RZ_OUTPUT_MODE_STANDARD | RZ_OUTPUT_MODE_JSON);
 	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javai, RZ_OUTPUT_MODE_STANDARD | RZ_OUTPUT_MODE_JSON);
 	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javam, RZ_OUTPUT_MODE_STANDARD | RZ_OUTPUT_MODE_JSON);
-	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javaf, RZ_OUTPUT_MODE_STANDARD | RZ_OUTPUT_MODE_JSON);
+	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javap, RZ_OUTPUT_MODE_STANDARD | RZ_OUTPUT_MODE_JSON);
+	rz_cmd_desc_argv_modes_new_warn(rcmd, java, javas, RZ_OUTPUT_MODE_STANDARD);
 
 	return true;
 }

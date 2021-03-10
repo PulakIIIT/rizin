@@ -224,13 +224,11 @@ typedef struct tableswitch_t {
 	ut32 low;
 	ut32 high;
 	ut32 length;
-	ut32 *pc_labels;
 } TableSwitch;
 
 typedef struct lookupswitch_t {
 	ut32 pc_default;
-	ut32 length;
-	ut32 *pc_labels;
+	ut32 npairs;
 } LookupSwitch;
 
 typedef struct bytecode_t {

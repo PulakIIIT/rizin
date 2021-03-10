@@ -45,11 +45,13 @@
 	bytecode->type[1] = (t1)
 
 static bool decode_lookupswitch(JavaVM *jvm, Bytecode *bytecode) {
-	ut64 offset = jvm->current + 1;
-
-	if ((offset % 4) != 0) {
-		offset += 4 - (offset % 4);
+	ut32 offset = (jvm->pc + jvm->current) & 3;
+	if (offset) {
+		offset = jvm->current + 5 - offset;
+	} else {
+		offset = jvm->current + 1;
 	}
+
 	if ((jvm->size - offset) < 8) {
 		return false;
 	}
@@ -59,54 +61,35 @@ static bool decode_lookupswitch(JavaVM *jvm, Bytecode *bytecode) {
 	ut32 npairs = rz_read_at_be32(jvm->buffer, offset);
 	offset += sizeof(ut32);
 
-	// in memory it is stored as [ut32 match | ut32 jmp] n-times
-	npairs *= 2;
-
-	if (npairs > 0xffff || ((jvm->size - offset) < (npairs * sizeof(ut32)))) {
-		// avoid impossible huge switch cases.
-		rz_warn_if_reached();
-		return false;
-	}
-
-	ut32 *array = NULL;
 	LookupSwitch *ls = RZ_NEW(LookupSwitch);
 	if (!ls) {
 		rz_warn_if_reached();
 		return false;
 	}
 
-	if (npairs > 0) {
-		array = RZ_NEWS(ut32, npairs);
-		if (!array) {
-			free(ls);
-			rz_warn_if_reached();
-			return false;
-		}
-		for (ut32 i = 0; i < npairs; ++i) {
-			array[i] = rz_read_at_be32(jvm->buffer, offset);
-			offset += sizeof(ut32);
-		}
-	}
-
 	ls->pc_default = pc_default;
-	ls->length = npairs;
-	ls->pc_labels = array;
+	ls->npairs = npairs;
 
+	bytecode->args[0] = pc_default;
+	bytecode->type[0] = BYTECODE_TYPE_ADDRESS;
 	bytecode->extra = ls;
 	bytecode->size = offset - jvm->current;
 	return true;
 }
 
 static bool decode_tableswitch(JavaVM *jvm, Bytecode *bytecode) {
-	ut64 offset = jvm->current + 1;
-
-	if ((offset % 4) != 0) {
-		offset += 4 - (offset % 4);
+	ut32 offset = (jvm->pc + jvm->current) & 3;
+	if (offset) {
+		offset = jvm->current + 5 - offset;
+	} else {
+		offset = jvm->current + 1;
 	}
-	if ((jvm->size - offset) < 8) {
+
+	if ((jvm->size - offset) < 12) {
 		rz_warn_if_reached();
 		return false;
 	}
+
 	ut32 pc_default = rz_read_at_be32(jvm->buffer, offset);
 	offset += sizeof(ut32);
 
@@ -116,40 +99,21 @@ static bool decode_tableswitch(JavaVM *jvm, Bytecode *bytecode) {
 	ut32 high = rz_read_at_be32(jvm->buffer, offset);
 	offset += sizeof(ut32);
 
-	ut32 length = high - low - 1;
+	ut32 length = high - low;
 
-	if (low > high || length > 0xffff || ((jvm->size - offset) < (length * sizeof(ut32)))) {
-		// avoid impossible huge switch cases.
-		rz_warn_if_reached();
-		return false;
-	}
-
-	ut32 *array = NULL;
 	TableSwitch *ts = RZ_NEW(TableSwitch);
 	if (!ts) {
 		rz_warn_if_reached();
 		return false;
 	}
 
-	if (length > 0) {
-		array = RZ_NEWS(ut32, length);
-		if (!array) {
-			free(ts);
-			rz_warn_if_reached();
-			return false;
-		}
-		for (ut32 i = 0; i < length; ++i) {
-			array[i] = rz_read_at_be32(jvm->buffer, offset);
-			offset += sizeof(ut32);
-		}
-	}
-
 	ts->pc_default = pc_default;
 	ts->low = low;
 	ts->high = high;
 	ts->length = length;
-	ts->pc_labels = array;
 
+	bytecode->args[0] = pc_default;
+	bytecode->type[0] = BYTECODE_TYPE_ADDRESS;
 	bytecode->extra = ts;
 	bytecode->size = offset - jvm->current;
 	return true;
@@ -1260,7 +1224,7 @@ static bool decode_instruction(JavaVM *jvm, Bytecode *bytecode) {
 			rz_warn_if_reached();
 			return false;
 		}
-		bytecode->atype = RZ_ANALYSIS_OP_TYPE_SWITCH;
+		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		bytecode->stack_input = 1;
 		break;
 	case BYTECODE_AB_LOOKUPSWITCH:
@@ -1269,7 +1233,7 @@ static bool decode_instruction(JavaVM *jvm, Bytecode *bytecode) {
 			rz_warn_if_reached();
 			return false;
 		}
-		bytecode->atype = RZ_ANALYSIS_OP_TYPE_SWITCH;
+		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		bytecode->stack_input = 1;
 		break;
 	case BYTECODE_AC_IRETURN:
@@ -1491,30 +1455,18 @@ static bool decode_instruction(JavaVM *jvm, Bytecode *bytecode) {
 void bytecode_snprint(RzStrBuf *sb, Bytecode *bytecode) {
 	rz_return_if_fail(sb && bytecode);
 	ut64 address;
-	st32 match;
 	if (bytecode->opcode == BYTECODE_AA_TABLESWITCH) {
 		rz_return_if_fail(bytecode->extra);
 		TableSwitch *ts = (TableSwitch *)bytecode->extra;
 
 		address = bytecode->pc + ts->pc_default;
-		rz_strbuf_setf(sb, "%s default:0x%" PFMT64x, bytecode->name, address);
-
-		for (ut32 i = 0; i < ts->length; ++i) {
-			address = bytecode->pc + ts->pc_labels[i];
-			rz_strbuf_appendf(sb, " %u:0x%" PFMT64x, ts->low + i, address);
-		}
+		rz_strbuf_setf(sb, "%s default 0x%" PFMT64x, bytecode->name, address);
 	} else if (bytecode->opcode == BYTECODE_AB_LOOKUPSWITCH) {
 		rz_return_if_fail(bytecode->extra);
 		LookupSwitch *ls = (LookupSwitch *)bytecode->extra;
 
 		address = bytecode->pc + ls->pc_default;
-		rz_strbuf_setf(sb, "%s default:0x%" PFMT64x, bytecode->name, address);
-
-		for (ut32 i = 0; i < ls->length; ++i) {
-			match = (st32)ls->pc_labels[i];
-			address = bytecode->pc + ls->pc_labels[i];
-			rz_strbuf_appendf(sb, " %d:0x%" PFMT64x, match, address);
-		}
+		rz_strbuf_setf(sb, "%s default 0x%" PFMT64x, bytecode->name, address);
 	} else if (bytecode->type[0] > 0 && !bytecode->type[1]) {
 		if (bytecode->type[0] == BYTECODE_TYPE_NUMBER) {
 			rz_strbuf_setf(sb, "%s %d", bytecode->name, bytecode->args[0]);
@@ -1580,13 +1532,6 @@ void bytecode_snprint(RzStrBuf *sb, Bytecode *bytecode) {
 
 void bytecode_clean(Bytecode *bytecode) {
 	rz_return_if_fail(bytecode);
-	if (bytecode->extra && bytecode->opcode == BYTECODE_AA_TABLESWITCH) {
-		TableSwitch *p = (TableSwitch *)bytecode->extra;
-		free(p->pc_labels);
-	} else if (bytecode->extra && bytecode->opcode == BYTECODE_AB_LOOKUPSWITCH) {
-		LookupSwitch *p = (LookupSwitch *)bytecode->extra;
-		free(p->pc_labels);
-	}
 	free(bytecode->extra);
 }
 
