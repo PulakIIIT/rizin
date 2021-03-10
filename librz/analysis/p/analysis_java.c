@@ -58,7 +58,8 @@ static int java_analysis(RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr, cons
 	JavaVM vm = { 0 };
 	Bytecode bc = { 0 };
 
-	if (!jvm_init(&vm, buf, len, addr)) {
+	RzBinSection *sec = analysis->binb.get_vsect_at(analysis->binb.bin, addr);
+	if (!jvm_init(&vm, buf, len, addr, sec ? sec->paddr : 0)) {
 		eprintf("[!] java_analysis: bad or invalid data.\n");
 		return -1;
 	}
@@ -67,6 +68,7 @@ static int java_analysis(RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr, cons
 	op->jump = UT64_MAX;
 	op->size = 1;
 	if (jvm_fetch(&vm, &bc)) {
+		op->size = bc.size;
 		op->type = bc.atype;
 		switch (bc.atype) {
 		case RZ_ANALYSIS_OP_TYPE_CALL:

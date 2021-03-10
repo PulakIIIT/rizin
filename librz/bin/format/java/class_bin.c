@@ -1405,7 +1405,7 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 	}
 	ut32 iname;
 	char *tmp;
-	char secname[256];
+	char secname[512];
 	ut64 end_offset;
 	if (bin->constant_pool) {
 		rz_list_append(sections,
@@ -1422,11 +1422,6 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 				RZ_PERM_R));
 	}
 	if (bin->fields) {
-		rz_list_append(sections,
-			new_section("class.fields",
-				bin->fields_offset,
-				bin->methods_offset,
-				RZ_PERM_R));
 		for (ut32 i = 0; i < bin->fields_count; ++i) {
 			Field *field = bin->fields[i];
 			if (!field) {
@@ -1449,13 +1444,13 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 			}
 			rz_list_append(sections, new_section(secname, field->offset, end_offset, RZ_PERM_R));
 		}
+		rz_list_append(sections,
+			new_section("class.fields",
+				bin->fields_offset,
+				bin->methods_offset,
+				RZ_PERM_R));
 	}
 	if (bin->methods) {
-		rz_list_append(sections,
-			new_section("class.methods",
-				bin->methods_offset,
-				bin->attributes_offset,
-				RZ_PERM_R));
 		for (ut32 i = 0; i < bin->methods_count; ++i) {
 			Method *method = bin->methods[i];
 			if (!method || method->attributes_count < 1) {
@@ -1467,15 +1462,9 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 				continue;
 			}
 			snprintf(secname, sizeof(secname), "class.methods.%s.attr", tmp);
-			if ((i + 1) < bin->methods_count && bin->methods[i + 1]) {
-				end_offset = bin->methods[i + 1]->offset;
-			} else {
-				end_offset = bin->attributes_offset;
-			}
 			for (iname = 0; rz_list_find(sections, secname, compare_section_names); iname++) {
 				snprintf(secname, sizeof(secname), "class.methods.%s_%d.attr", tmp, iname);
 			}
-			rz_list_append(sections, new_section(secname, method->offset, end_offset, RZ_PERM_R));
 
 			if (!method->attributes) {
 				free(tmp);
@@ -1495,8 +1484,25 @@ RZ_API RzList *rz_bin_java_class_as_sections(RzBinJavaClass *bin) {
 					break;
 				}
 			}
+
+			if ((i + 1) < bin->methods_count && bin->methods[i + 1]) {
+				end_offset = bin->methods[i + 1]->offset;
+			} else {
+				end_offset = bin->attributes_offset;
+			}
+			if (iname > 0) {
+				snprintf(secname, sizeof(secname), "class.methods.%s_%d.attr", tmp, iname);
+			} else {
+				snprintf(secname, sizeof(secname), "class.methods.%s.attr", tmp);
+			}
+			rz_list_append(sections, new_section(secname, method->offset, end_offset, RZ_PERM_R));
 			free(tmp);
 		}
+		rz_list_append(sections,
+			new_section("class.methods",
+				bin->methods_offset,
+				bin->attributes_offset,
+				RZ_PERM_R));
 	}
 	if (bin->attributes) {
 		rz_list_append(sections,

@@ -14,7 +14,7 @@
 	bytecode->type[0] = (t)
 
 #define load_ut8x2(bytecode, jvm, t0, t1, c0, c1) \
-	fail_if_no_enough_buffer_or_set(bytecode, jvm, 5); \
+	fail_if_no_enough_buffer_or_set(bytecode, jvm, 3); \
 	bytecode->args[0] = (c0)jvm->buffer[jvm->current + 1]; \
 	bytecode->type[0] = (t0); \
 	bytecode->args[1] = (c1)jvm->buffer[jvm->current + 2]; \
@@ -44,13 +44,17 @@
 	bytecode->args[1] = (c1)rz_read_at_be16(jvm->buffer, jvm->current + 3); \
 	bytecode->type[1] = (t1)
 
-static bool decode_lookupswitch(JavaVM *jvm, Bytecode *bytecode) {
-	ut32 offset = (jvm->pc + jvm->current) & 3;
-	if (offset) {
-		offset = jvm->current + 5 - offset;
-	} else {
-		offset = jvm->current + 1;
+static inline ut32 align_upper(JavaVM *jvm) {
+	ut64 base = jvm->pc - jvm->section + jvm->current + 1;
+	ut64 mod = base % 4;
+	if (mod != 0) {
+        return 4 - mod;
 	}
+	return 0;
+}
+
+static bool decode_lookupswitch(JavaVM *jvm, Bytecode *bytecode) {
+	ut32 offset = jvm->current + align_upper(jvm);
 
 	if ((jvm->size - offset) < 8) {
 		return false;
@@ -78,12 +82,7 @@ static bool decode_lookupswitch(JavaVM *jvm, Bytecode *bytecode) {
 }
 
 static bool decode_tableswitch(JavaVM *jvm, Bytecode *bytecode) {
-	ut32 offset = (jvm->pc + jvm->current) & 3;
-	if (offset) {
-		offset = jvm->current + 5 - offset;
-	} else {
-		offset = jvm->current + 1;
-	}
+	ut32 offset = jvm->current + align_upper(jvm) + 1;
 
 	if ((jvm->size - offset) < 12) {
 		rz_warn_if_reached();
@@ -1119,96 +1118,96 @@ static bool decode_instruction(JavaVM *jvm, Bytecode *bytecode) {
 		break;
 	case BYTECODE_99_IFEQ:
 		strcpy(bytecode->name, "ifeq");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_9A_IFNE:
 		strcpy(bytecode->name, "ifne");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_9B_IFLT:
 		strcpy(bytecode->name, "iflt");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_9C_IFGE:
 		strcpy(bytecode->name, "ifge");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_9D_IFGT:
 		strcpy(bytecode->name, "ifgt");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_9E_IFLE:
 		strcpy(bytecode->name, "ifle");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_9F_IF_ICMPEQ:
 		strcpy(bytecode->name, "if_icmpeq");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A0_IF_ICMPNE:
 		strcpy(bytecode->name, "if_icmpne");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A1_IF_ICMPLT:
 		strcpy(bytecode->name, "if_icmplt");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A2_IF_ICMPGE:
 		strcpy(bytecode->name, "if_icmpge");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A3_IF_ICMPGT:
 		strcpy(bytecode->name, "if_icmpgt");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A4_IF_ICMPLE:
 		strcpy(bytecode->name, "if_icmple");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A5_IF_ACMPEQ:
 		strcpy(bytecode->name, "if_acmpeq");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A6_IF_ACMPNE:
 		strcpy(bytecode->name, "if_acmpne");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_input = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		break;
 	case BYTECODE_A7_GOTO:
 		strcpy(bytecode->name, "goto");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_JMP;
 		break;
 	case BYTECODE_A8_JSR:
 		strcpy(bytecode->name, "jsr");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->stack_output = 2;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CALL;
 		break;
@@ -1399,25 +1398,25 @@ static bool decode_instruction(JavaVM *jvm, Bytecode *bytecode) {
 		break;
 	case BYTECODE_C6_IFNULL:
 		strcpy(bytecode->name, "ifnull");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		bytecode->stack_input = 1;
 		break;
 	case BYTECODE_C7_IFNONNULL:
 		strcpy(bytecode->name, "ifnonnull");
-		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut16(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st16);
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CJMP;
 		bytecode->stack_input = 1;
 		break;
 	case BYTECODE_C8_GOTO_W:
 		strcpy(bytecode->name, "goto_w");
-		load_ut32(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut32(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st32);
 		bytecode->stack_output = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_JMP;
 		break;
 	case BYTECODE_C9_JSR_W:
 		strcpy(bytecode->name, "jsr_w");
-		load_ut32(bytecode, jvm, BYTECODE_TYPE_ADDRESS, ut32);
+		load_ut32(bytecode, jvm, BYTECODE_TYPE_ADDRESS, st32);
 		bytecode->stack_output = 1;
 		bytecode->atype = RZ_ANALYSIS_OP_TYPE_CALL;
 		break;
@@ -1460,13 +1459,13 @@ void bytecode_snprint(RzStrBuf *sb, Bytecode *bytecode) {
 		TableSwitch *ts = (TableSwitch *)bytecode->extra;
 
 		address = bytecode->pc + ts->pc_default;
-		rz_strbuf_setf(sb, "%s default 0x%" PFMT64x, bytecode->name, address);
+		rz_strbuf_setf(sb, "%s default: 0x%" PFMT64x, bytecode->name, address);
 	} else if (bytecode->opcode == BYTECODE_AB_LOOKUPSWITCH) {
 		rz_return_if_fail(bytecode->extra);
 		LookupSwitch *ls = (LookupSwitch *)bytecode->extra;
 
 		address = bytecode->pc + ls->pc_default;
-		rz_strbuf_setf(sb, "%s default 0x%" PFMT64x, bytecode->name, address);
+		rz_strbuf_setf(sb, "%s default: 0x%" PFMT64x, bytecode->name, address);
 	} else if (bytecode->type[0] > 0 && !bytecode->type[1]) {
 		if (bytecode->type[0] == BYTECODE_TYPE_NUMBER) {
 			rz_strbuf_setf(sb, "%s %d", bytecode->name, bytecode->args[0]);
@@ -1535,13 +1534,14 @@ void bytecode_clean(Bytecode *bytecode) {
 	free(bytecode->extra);
 }
 
-bool jvm_init(JavaVM *jvm, const ut8 *buffer, const ut32 size, ut64 addr) {
+bool jvm_init(JavaVM *jvm, const ut8 *buffer, const ut32 size, ut64 pc, ut64 section) {
 	rz_return_val_if_fail(jvm && buffer && size > 0, false);
 
 	jvm->buffer = buffer;
 	jvm->size = size;
 	jvm->current = 0;
-	jvm->pc = addr;
+	jvm->pc = pc;
+	jvm->section = section;
 
 	return true;
 }

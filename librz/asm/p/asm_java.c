@@ -14,6 +14,7 @@ typedef struct java_analysis_context_t {
 	TableSwitch ts;
 	ut16 switchop;
 	ut64 pc;
+	ut64 last;
 	ut32 count;
 } JavaAsmContext;
 
@@ -28,7 +29,12 @@ static void update_context(JavaAsmContext* ctx)  {
 
 static int java_disassemble(RzAsm *a, RzAsmOp *op, const ut8 *buf, int len) {
 	JavaAsmContext *ctx = (JavaAsmContext*)a->user;
+	rz_strbuf_set(&op->buf_asm, "invalid");
 
+	if (a->pc < ctx->last) {
+		ctx->switchop = BYTECODE_00_NOP;
+	}
+	ctx->last = a->pc;
 	switch (ctx->switchop) {
 	case BYTECODE_AA_TABLESWITCH: {
 		if (len < 4) {
@@ -62,7 +68,8 @@ static int java_disassemble(RzAsm *a, RzAsmOp *op, const ut8 *buf, int len) {
 
 	rz_strbuf_set(&op->buf_asm, "invalid");
 
-	if (!jvm_init(&vm, buf, len, a->pc)) {
+	RzBinSection *sec = a->binb.get_vsect_at(a->binb.bin, a->pc);
+	if (!jvm_init(&vm, buf, len, a->pc, sec ? sec->paddr : 0)) {
 		eprintf("[!] java_disassemble: bad or invalid data.\n");
 		return -1;
 	}
