@@ -1663,6 +1663,9 @@ static int GH(cmd_dbg_map_heap_glibc)(RzCore *core, const char *input) {
 			free(dup);
 		}
 		break;
+	case 'o':// "dmho"
+		
+		break;
 	case 'c': // "dmhc"
 		if (GH(rz_resolve_main_arena)(core, &m_arena)) {
 			GH(print_heap_chunk)
