@@ -2209,3 +2209,8 @@ static int GH(cmd_dbg_map_heap_glibc)(RzCore *core, const char *input) {
 	free(main_arena);
 	return true;
 }
+
+RZ_IPI RzCmdStatus rz_cmd_heap_chunks_print_handler(RzCore *core, int argc, const char **argv) {
+	rz_cons_printf("executing dmh\n");
+	return RZ_CMD_STATUS_OK;
+}

@@ -639,3 +639,8 @@ commands:
             arg_str: ":addr/cols/name/nbbs:nbbs/sort/dec:nbbs/gt/1:nbbs/lt/10:fancy"
             comment: Show only the address, name and number of basic blocks of the identified functions
               with more than 1 block but less than 10, sorted decrementally by number of blocks.
+  - name: dmh
+    cname: cmd_heap_glibc
+    summary: Glibc heap commands
+    args: []
+    subcommands: cmd_heap_glibc

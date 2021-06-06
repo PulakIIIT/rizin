@@ -1698,14 +1698,6 @@ static const RzCmdDescHelp cmd_debug_dump_maps_writable_help = {
 	.args = cmd_debug_dump_maps_writable_args,
 };
 
-static const RzCmdDescArg cmd_debug_heap_args[] = {
-	{ 0 },
-};
-static const RzCmdDescHelp cmd_debug_heap_help = {
-	.summary = "Show map of heap",
-	.args = cmd_debug_heap_args,
-};
-
 static const RzCmdDescHelp cmd_debug_dmi_help = {
 	.summary = "List/Load symbols",
 };
@@ -4406,6 +4398,24 @@ static const RzCmdDescHelp specifiers_help = {
 	.details = specifiers_details,
 };
 
+static const RzCmdDescArg cmd_heap_glibc_args[] = {
+	{ 0 },
+};
+static const RzCmdDescHelp cmd_heap_glibc_help = {
+	.summary = "Glibc heap commands",
+	.args = cmd_heap_glibc_args,
+};
+static const RzCmdDescHelp dmh_help = {
+	.summary = "Glibc heap commands",
+};
+static const RzCmdDescArg cmd_heap_chunks_print_args[] = {
+	{ 0 },
+};
+static const RzCmdDescHelp cmd_heap_chunks_print_help = {
+	.summary = "print heap chunks",
+	.args = cmd_heap_chunks_print_args,
+};
+
 RZ_IPI void rzshell_cmddescs_init(RzCore *core) {
 	RzCmdDesc *root_cd = rz_cmd_get_root(core->rcmd);
 	rz_cmd_batch_start(core->rcmd);
@@ -4729,9 +4739,6 @@ RZ_IPI void rzshell_cmddescs_init(RzCore *core) {
 
 	RzCmdDesc *cmd_debug_dump_maps_writable_cd = rz_cmd_desc_argv_new(core->rcmd, dmd_cd, "dmdw", rz_cmd_debug_dump_maps_writable_handler, &cmd_debug_dump_maps_writable_help);
 	rz_warn_if_fail(cmd_debug_dump_maps_writable_cd);
-
-	RzCmdDesc *cmd_debug_heap_cd = rz_cmd_desc_oldinput_new(core->rcmd, dm_cd, "dmh", rz_cmd_debug_heap, &cmd_debug_heap_help);
-	rz_warn_if_fail(cmd_debug_heap_cd);
 
 	RzCmdDesc *cmd_debug_dmi_cd = rz_cmd_desc_oldinput_new(core->rcmd, dm_cd, "dmi", rz_cmd_debug_dmi, &cmd_debug_dmi_help);
 	rz_warn_if_fail(cmd_debug_dmi_cd);
@@ -5286,5 +5293,12 @@ RZ_IPI void rzshell_cmddescs_init(RzCore *core) {
 
 	RzCmdDesc *specifiers_cd = rz_cmd_desc_fake_new(core->rcmd, root_cd, ":", &specifiers_help);
 	rz_warn_if_fail(specifiers_cd);
+
+	RzCmdDesc *cmd_heap_glibc_cd = rz_cmd_desc_group_new(core->rcmd, root_cd, "dmh", NULL, &dmh_help, &cmd_heap_glibc_help);
+	rz_warn_if_fail(cmd_heap_glibc_cd);
+	RzCmdDesc *dmh_cd = rz_cmd_desc_group_new(core->rcmd, cmd_heap_glibc_cd, "dmh", rz_cmd_heap_chunks_print_handler, &cmd_heap_chunks_print_help, &dmh_help);
+	rz_warn_if_fail(dmh_cd);
+	RzCmdDesc *cmd_heap_chunks_print_cd = rz_cmd_desc_argv_new(core->rcmd, dmh_cd, "dmh", rz_cmd_heap_chunks_print_handler, &cmd_heap_chunks_print_help);
+	rz_warn_if_fail(cmd_heap_chunks_print_cd);
 	rz_cmd_batch_end(core->rcmd);
 }
