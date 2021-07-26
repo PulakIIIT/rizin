@@ -33,3 +33,21 @@ RZ_IPI RzCmdStatus rz_cmd_debug_heap_block_flag_handler(RzCore *core, int argc, 
 	return RZ_CMD_STATUS_ERROR;
 #endif
 }
+
+/* API calls for Cutter */
+
+RZ_API RzList *rz_heap_windows_blocks_list(RzCore *core) {
+#if __WINDOWS__
+	return rz_heap_blocks_list(core);
+#else
+	return NULL;
+#endif
+}
+
+RZ_API RzList *rz_heap_windows_heap_list(RzCore *core) {
+#if __WINDOWS__
+	return rz_heap_list(core);
+#else
+	return NULL;
+#endif
+}
