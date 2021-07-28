@@ -25,4 +25,4 @@ typedef struct rz_heap_info {
 }
 #endif
 
-#endif //
+#endif // RZ_WINDOWS_HEAP_H
