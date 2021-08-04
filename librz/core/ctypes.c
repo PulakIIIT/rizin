@@ -244,39 +244,49 @@ RZ_IPI void rz_core_types_union_print_all(RzCore *core, RzOutputMode mode) {
 	}
 }
 
-static void core_types_union_print_c(RzTypeDB *typedb, RzBaseType *btype, bool multiline) {
-	rz_return_if_fail(btype);
-	rz_return_if_fail(btype->kind == RZ_BASE_TYPE_KIND_UNION);
+RZ_OWN char *rz_types_union_to_c_string(RzTypeDB *typedb, RzBaseType *btype, bool multiline) {
+	rz_return_val_if_fail(btype, NULL);
+	rz_return_val_if_fail(btype->kind == RZ_BASE_TYPE_KIND_UNION, NULL);
+	char *str_rep = rz_str_new("");
 	char *separator;
 	if (!rz_vector_empty(&btype->enum_data.cases)) {
-		rz_cons_printf("union %s {%s", btype->name, multiline ? "\n" : "");
+		rz_str_appendf(str_rep, "union %s {%s", btype->name, multiline ? "\n" : "");
 		separator = multiline ? "\t" : "";
 		RzTypeUnionMember *memb;
 		rz_vector_foreach(&btype->union_data.members, memb) {
 			char *membtype = rz_type_identifier_declaration_as_string(typedb, memb->type, memb->name);
 			if (memb->type->kind == RZ_TYPE_KIND_ARRAY) {
-				rz_cons_printf("%s%s %s[%" PFMT64d "]", separator, membtype,
+				rz_str_appendf(str_rep, "%s%s %s[%" PFMT64d "]", separator, membtype,
 					memb->name, memb->type->array.count);
 			} else if (memb->type->kind == RZ_TYPE_KIND_POINTER) {
 				// A pointer to the function is a special case
 				if (rz_type_is_callable_ptr(memb->type)) {
-					rz_cons_printf("%s%s", separator, membtype);
+					rz_str_appendf(str_rep, "%s%s", separator, membtype);
 				} else {
-					rz_cons_printf("%s%s%s", separator, membtype, memb->name);
+					rz_str_appendf(str_rep, "%s%s%s", separator, membtype, memb->name);
 				}
 			} else if (memb->type->kind == RZ_TYPE_KIND_CALLABLE) {
-				rz_cons_printf("%s%s", separator, membtype);
+				rz_str_appendf(str_rep, "%s%s", separator, membtype);
 			} else {
-				rz_cons_printf("%s%s %s", separator, membtype, memb->name);
+				rz_str_appendf(str_rep, "%s%s %s", separator, membtype, memb->name);
 			}
 			free(membtype);
 			separator = multiline ? ";\n\t" : "; ";
 		}
-		rz_cons_print(";");
-		rz_cons_println(multiline ? "\n};" : "};");
+		rz_str_appendf(str_rep, ";");
+		rz_str_appendf(str_rep, multiline ? "\n};\n" : "};\n");
 	} else {
-		rz_cons_printf("union %s {};\n", btype->name);
+		rz_str_appendf(str_rep, "union %s {};\n", btype->name);
 	}
+	return str_rep;
+}
+
+static void core_types_union_print_c(RzTypeDB *typedb, RzBaseType *btype, bool multiline) {
+	rz_return_if_fail(btype);
+	rz_return_if_fail(btype->kind == RZ_BASE_TYPE_KIND_UNION);
+	char *str_rep = rz_types_union_to_c_string(typedb, btype, multiline);
+	rz_cons_printf("%s\n", str_rep);
+	free(str_rep);
 }
 
 RZ_IPI void rz_core_types_union_print_c(RzTypeDB *typedb, const char *name, bool multiline) {
@@ -374,40 +384,49 @@ RZ_IPI void rz_core_types_struct_print_all(RzCore *core, RzOutputMode mode) {
 	}
 }
 
-static void core_types_struct_print_c(RzTypeDB *typedb, RzBaseType *btype, bool multiline) {
-	rz_return_if_fail(btype);
-	rz_return_if_fail(btype->kind == RZ_BASE_TYPE_KIND_STRUCT);
+RZ_API RZ_OWN char *rz_type_struct_to_c_string(RzTypeDB *typedb, RzBaseType *btype, bool multiline) {
+	rz_return_val_if_fail(btype && btype->kind == RZ_BASE_TYPE_KIND_STRUCT, NULL);
 	char *separator;
+	char *str_rep = rz_str_new("");
 	if (!rz_vector_empty(&btype->struct_data.members)) {
-		rz_cons_printf("struct %s {%s", btype->name, multiline ? "\n" : "");
+		rz_str_appendf(str_rep, "struct %s {%s", btype->name, multiline ? "\n" : "");
 		separator = multiline ? "\t" : "";
 		RzTypeStructMember *memb;
 		rz_vector_foreach(&btype->struct_data.members, memb) {
-			rz_return_if_fail(memb->type);
+			rz_return_val_if_fail(memb->type, NULL);
 			char *membtype = rz_type_identifier_declaration_as_string(typedb, memb->type, memb->name);
 			if (memb->type->kind == RZ_TYPE_KIND_ARRAY) {
-				rz_cons_printf("%s%s %s[%" PFMT64d "]", separator, membtype,
+				rz_str_appendf(str_rep, "%s%s %s[%" PFMT64d "]", separator, membtype,
 					memb->name, memb->type->array.count);
 			} else if (memb->type->kind == RZ_TYPE_KIND_POINTER) {
 				// A pointer to the function is a special case
 				if (rz_type_is_callable_ptr(memb->type)) {
-					rz_cons_printf("%s%s", separator, membtype);
+					rz_str_appendf(str_rep, "%s%s", separator, membtype);
 				} else {
-					rz_cons_printf("%s%s%s", separator, membtype, memb->name);
+					rz_str_appendf(str_rep, separator, membtype, memb->name);
 				}
 			} else if (memb->type->kind == RZ_TYPE_KIND_CALLABLE) {
-				rz_cons_printf("%s%s", separator, membtype);
+				rz_str_appendf(str_rep, "%s%s", separator, membtype);
 			} else {
-				rz_cons_printf("%s%s %s", separator, membtype, memb->name);
+				rz_str_appendf(str_rep, "%s%s %s", separator, membtype, memb->name);
 			}
 			free(membtype);
 			separator = multiline ? ";\n\t" : "; ";
 		}
-		rz_cons_print(";");
-		rz_cons_println(multiline ? "\n};" : "};");
+		rz_str_appendf(str_rep, ";");
+		rz_str_appendf(str_rep, multiline ? "\n};\n" : "};\n");
 	} else {
-		rz_cons_printf("struct %s {};\n", btype->name);
+		rz_str_appendf(str_rep, "struct %s {};\n", btype->name);
 	}
+	return str_rep;
+}
+
+static void core_types_struct_print_c(RzTypeDB *typedb, RzBaseType *btype, bool multiline) {
+	rz_return_if_fail(btype);
+	rz_return_if_fail(btype->kind == RZ_BASE_TYPE_KIND_STRUCT);
+	char *string_rep = rz_type_struct_to_c_string(typedb, btype, multiline);
+	rz_cons_printf("%s", string_rep);
+	free(string_rep);
 }
 
 RZ_IPI void rz_core_types_struct_print_c(RzTypeDB *typedb, const char *name, bool multiline) {
@@ -487,12 +506,21 @@ RZ_IPI void rz_core_types_typedef_print_all(RzCore *core, RzOutputMode mode) {
 	}
 }
 
+RZ_OWN char *rz_type_typedef_to_c_string(RzTypeDB *typedb, RzBaseType *btype) {
+	rz_return_val_if_fail(typedb && btype, NULL);
+	rz_return_val_if_fail(btype->kind == RZ_BASE_TYPE_KIND_TYPEDEF, NULL);
+	char *typestr = rz_type_as_string(typedb, btype->type);
+	char *str = rz_str_newf("typedef %s %s;\n", typestr, btype->name);
+	free(typestr);
+	return str;
+}
+
 static void core_types_typedef_print_c(RzTypeDB *typedb, RzBaseType *btype) {
 	rz_return_if_fail(btype);
 	rz_return_if_fail(btype->kind == RZ_BASE_TYPE_KIND_TYPEDEF);
-	char *typestr = rz_type_as_string(typedb, btype->type);
-	rz_cons_printf("typedef %s %s;\n", typestr, btype->name);
-	free(typestr);
+	char *str = rz_type_typedef_to_c_string(typedb, btype);
+	rz_cons_printf("%s", str);
+	free(str);
 }
 
 RZ_IPI void rz_core_types_typedef_print_c(RzTypeDB *typedb, const char *typedef_name) {
